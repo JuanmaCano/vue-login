@@ -1,19 +1,25 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-import Home from "../views/Home.vue";
+import routes from './routes'
+import store from '@/store'
 
 Vue.use(VueRouter);
 
-const routes = [
-  {
-    path: "/",
-    name: "Home",
-    component: Home,
-  },
-];
-
 const router = new VueRouter({
-  routes,
-});
+  routes
+})
 
-export default router;
+router.beforeEach((to, from, next) => {
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const isLogged = store.state.auth.isLogged
+  if (!requiresAuth && isLogged && to.path === '/login') {
+    next('/secret')
+  }
+  if (requiresAuth && !isLogged) {
+    next('/login')
+  } else {
+    next()
+  }
+})
+
+export default router
